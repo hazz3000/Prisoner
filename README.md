@@ -1,6 +1,45 @@
 # Prisoner
 
-A campaign simulator: which ad should each person see next, when all you keep is campaign totals?
+Live: https://hazz3000.github.io/Prisoner/
+
+## IP circles (`index.html`, `python -m prisoners`)
+
+A single-product campaign. The audience is IP addresses grouped into circles (subnets, areas); neighbouring
+circles behave alike, and showing an IP again too soon works less well (fatigue). With a fixed daily impression
+budget, which way of rotating through the circles gets the most sales, and wastes the fewest impressions?
+
+| Strategy | What it does |
+|---|---|
+| Random blast | each day, random IPs that haven't bought — baseline |
+| Even rotation | one fixed loop through every IP, circle by circle |
+| Follow hot circles | budget goes in chunks to the circles selling best so far; neighbours count as half-evidence |
+| Hot circles + retry loop | the same, and IPs that just saw the ad rest until fatigue wears off, then rejoin |
+| Perfect knowledge | knows every IP's rate — a ceiling |
+
+Default run (20,000 IPs, 100 circles, 500 impressions a day for 30 days, 10 campaigns):
+
+| Strategy | Sales | Failures per sale | vs blast |
+|---|---|---|---|
+| Hot circles + retry loop | ~264 | ~56 | +100% |
+| Follow hot circles | ~194 | ~76 | +48% |
+| Random blast | ~132 | ~113 | — |
+| Even rotation | ~129 | ~115 | −2% |
+| Perfect knowledge | ~392 | ~37 | +197% |
+
+Following hot circles is the main lever, and it depends on circles really differing (`--spread`). The retry loop adds
+most when fatigue bites; with no fatigue (`--fatigue 1`) resting good IPs costs sales. Rotation alone doesn't help
+when the budget never reaches every IP. Note that in the EU/UK an IP address is personal data, and many IPs are
+shared or change often, so circles are sturdier than single IPs.
+
+```bash
+python -m prisoners                   # defaults above
+python -m prisoners --spread 0.2      # circles nearly alike
+python -m prisoners --fatigue 1       # no fatigue
+```
+
+## Ad variants (`ads.html`, `python -m prisoners ads`)
+
+Which ad should each person see next, when all you keep is campaign totals?
 
 Each person sees up to K of your A ad variants (no repeats) and converts at most once. The strategies only store
 aggregate counts (impressions and conversions per cohort × ad), never anything about an individual:
@@ -32,9 +71,9 @@ comes from any grouping signal, and that can be non-personal context (placement,
 `index.html` is the interactive version (open it in a browser or serve with GitHub Pages).
 
 ```bash
-python -m prisoners                      # campaign comparison with defaults
-python -m prisoners --overlap 0.8        # cohorts mostly like the same ads
-python -m prisoners --audience 50000 --runs 3
+python -m prisoners ads                  # ad-variant comparison with defaults
+python -m prisoners ads --overlap 0.8    # cohorts mostly like the same ads
+python -m prisoners ads --audience 50000 --runs 3
 ```
 
 ## The original puzzle

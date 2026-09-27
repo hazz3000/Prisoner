@@ -1,6 +1,7 @@
 """Command line.
 
-    python -m prisoners [campaign options]   compare ad-sequencing strategies
+    python -m prisoners [options]            single-product campaign over circles of IPs
+    python -m prisoners ads [options]        compare ad-variant sequencing strategies
     python -m prisoners puzzle [options]     the original 100 prisoners puzzle
 """
 
@@ -10,7 +11,7 @@ import argparse
 import json
 import sys
 
-from . import campaign
+from . import campaign, circles
 from .engine import STRATEGIES, exact_p_all, min_successes, simulate
 
 
@@ -71,12 +72,50 @@ def puzzle_main(argv: list[str]) -> None:
         print(f"{strat:<8}  {r.mean_fraction:>8.1%}  {r.p_all:>11.2%}  {r.p_threshold:>12.2%}  {exact:>11}")
 
 
+def circles_main(argv: list[str]) -> None:
+    d = circles.Settings()
+    p = argparse.ArgumentParser(prog="prisoners", description="Single-product campaign over circles of IPs")
+    p.add_argument("--ips", type=int, default=d.ips, help=f"IP addresses in the audience (default {d.ips})")
+    p.add_argument("--circles", type=int, default=d.circles, help=f"circles the IPs are grouped into (default {d.circles})")
+    p.add_argument("--base", type=float, default=d.base, help=f"average conversion rate per impression (default {d.base})")
+    p.add_argument("--spread", type=float, default=d.spread, help=f"how uneven circles are, 0 = all alike (default {d.spread})")
+    p.add_argument("--similarity", type=float, default=d.similarity,
+                   help=f"how alike neighbouring circles are, 0-0.95 (default {d.similarity})")
+    p.add_argument("--days", type=int, default=d.days, help=f"campaign length (default {d.days})")
+    p.add_argument("--per-day", type=int, default=d.per_day, help=f"impressions per day (default {d.per_day})")
+    p.add_argument("--cooldown", type=int, default=d.cooldown, help=f"days an IP stays fatigued (default {d.cooldown})")
+    p.add_argument("--fatigue", type=float, default=d.fatigue,
+                   help=f"rate multiplier per recent showing, 1 = no fatigue (default {d.fatigue})")
+    p.add_argument("--runs", type=int, default=d.runs, help=f"campaigns to average (default {d.runs})")
+    p.add_argument("--seed", type=int, default=None)
+    p.add_argument("--json", action="store_true")
+    a = p.parse_args(argv)
+
+    s = circles.Settings(a.ips, a.circles, a.base, a.spread, a.similarity, a.days, a.per_day,
+                         a.cooldown, a.fatigue, a.runs, a.seed)
+    res = circles.compare(s)
+    if a.json:
+        print(json.dumps({k: {"label": circles.LABELS[k], "mean": r.mean, "failures": r.failures,
+                              "failures_per_conversion": r.per_conversion - 1, "curve": r.curve}
+                          for k, r in res.items()}, indent=2))
+        return
+    blast = res["blast"]
+    print(f"{s.ips:,} IPs in {s.circles} circles, {s.per_day:,} impressions a day for {s.days} days, "
+          f"averaged over {s.runs} campaigns\n")
+    print(f"{'strategy':<28} {'conversions':>11} {'failures per sale':>18} {'vs blast':>9}")
+    for k, r in res.items():
+        print(f"{circles.LABELS[k]:<28} {r.mean:>11.1f} {r.per_conversion - 1:>18.1f} "
+              f"{r.mean / (blast.mean or 1) - 1:>+9.0%}")
+
+
 def main(argv: list[str] | None = None) -> None:
     argv = sys.argv[1:] if argv is None else argv
     if argv and argv[0] == "puzzle":
         puzzle_main(argv[1:])
+    elif argv and argv[0] == "ads":
+        campaign_main(argv[1:])
     else:
-        campaign_main(argv)
+        circles_main(argv)
 
 
 if __name__ == "__main__":
