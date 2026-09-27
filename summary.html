@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>100 Prisoners, 100 Circles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root {
+  --paper: #f4f5f2; --panel: #ffffff; --ink: #1c2230; --muted: #5c6474; --rule: #dcdfd8; --grid: #e8eae4;
+  --hot: #b8741a; --hot-soft: #f1e2c9; --cool: #4d6a94; --cool-soft: #dce4ef; --base: #8a8f98;
+  --good: #2f7a4b; --good-soft: #dcefe2; --poor: #b3412e; --poor-soft: #f3d9d3;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171d; --panel: #1c2028; --ink: #e9eae6; --muted: #9aa1ad; --rule: #2e3440; --grid: #262b34;
+    --hot: #e0a04a; --hot-soft: #3b2f1c; --cool: #86a3cc; --cool-soft: #232d3c; --base: #8d939d;
+    --good: #6cc08a; --good-soft: #1d3326; --poor: #e0735f; --poor-soft: #3d2420;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171d; --panel: #1c2028; --ink: #e9eae6; --muted: #9aa1ad; --rule: #2e3440; --grid: #262b34;
+  --hot: #e0a04a; --hot-soft: #3b2f1c; --cool: #86a3cc; --cool-soft: #232d3c; --base: #8d939d;
+  --good: #6cc08a; --good-soft: #1d3326; --poor: #e0735f; --poor-soft: #3d2420;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 var(--body); padding-inline: 20px; padding-block: 40px 72px; }
+a { color: var(--hot); }
+a:focus-visible { outline: 2px solid var(--hot); outline-offset: 2px; }
+.wrap { max-width: 760px; margin: 0 auto; display: grid; gap: 44px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(34px, 6vw, 56px); font-weight: 800; line-height: 1.02; letter-spacing: -0.025em; }
+h2 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 17px; font-weight: 600; }
+p { margin: 0; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+nav { display: flex; gap: 16px; flex-wrap: wrap; font-size: 14px; align-items: baseline; }
+header { display: grid; gap: 18px; }
+.lede { font-size: 19px; line-height: 1.55; color: var(--muted); }
+section { display: grid; gap: 16px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+.answer { background: var(--panel); border: 1px solid var(--rule); border-left: 4px solid var(--hot); border-radius: 0 10px 10px 0; padding: 20px 22px; display: grid; gap: 10px; }
+.answer p { font-size: 17px; }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 600px) { .stats { grid-template-columns: 1fr; } }
+.stat { display: grid; gap: 4px; padding-top: 12px; border-top: 2px solid var(--ink); }
+.stat b { font: 500 30px/1.1 var(--mono); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 14px; color: var(--muted); }
+
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th, td { text-align: left; padding: 9px 12px 9px 0; border-top: 1px solid var(--rule); vertical-align: top; }
+th { font: 500 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-top: 0; }
+td.r, th.r { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.best td { font-weight: 600; }
+.bar { display: inline-block; height: 10px; border-radius: 2px; vertical-align: middle; margin-right: 8px; }
+
+figure { margin: 0; background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; display: grid; gap: 12px; }
+figcaption { font-size: 14px; color: var(--muted); }
+figure svg { width: 100%; height: auto; }
+svg text { font-family: var(--mono); font-size: 12px; fill: var(--muted); }
+svg .lbl { font-family: var(--body); font-size: 14px; fill: var(--ink); font-weight: 500; }
+
+.conds { display: grid; gap: 0; }
+.cond { display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--rule); }
+.cond:first-child { border-top: 0; }
+.cond i { font: 600 13px var(--mono); font-style: normal; color: var(--hot); }
+.cond p { color: var(--muted); font-size: 15px; }
+
+ul.plain { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.tools { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (max-width: 600px) { .tools { grid-template-columns: 1fr; } }
+.tools a { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 8px; background: var(--panel); color: var(--ink); text-decoration: none; }
+.tools a:hover { border-color: var(--hot); }
+.tools a b { color: var(--hot); }
+.tools a span { font-size: 14px; color: var(--muted); }
+footer { color: var(--muted); font-size: 13.5px; border-top: 1px solid var(--rule); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <nav><span class="eyebrow">Summary</span><a href="index.html">Simulator</a><a href="diagnose.html">Diagnose a campaign</a><a href="puzzle.html">The puzzle</a></nav>
+  <h1>The 100 prisoners puzzle, and what it can do for a campaign</h1>
+  <p class="lede">It starts with a famous puzzle about 100 prisoners, 100 boxes and a loop trick that beats impossible odds. The marketing idea is to use that trick to run a single-product campaign. Group the audience's IP addresses into circles, rotate through them, and cut the impressions that don't convert. This page summarises what the simulations found and when the idea works.</p>
+</header>
+
+<div class="answer">
+  <span class="eyebrow">The short answer</span>
+  <p><b>Yes, under the right conditions.</b> With the default settings it roughly doubled sales from the same budget and halved the waste. The gain doesn't come from the prisoners' loop itself. It comes from moving budget toward circles that sell and resting IPs that just saw the ad. It only works if your circles really do convert differently, and only a split test can prove that for your campaign.</p>
+</div>
+
+<section>
+  <span class="eyebrow">1 · The puzzle</span>
+  <h2>The 100 prisoners conundrum</h2>
+
+  <h3>The setup</h3>
+  <p>100 prisoners are numbered 1 to 100. In a sealed room stand 100 boxes, also numbered 1 to 100. The warden has put the prisoners' numbers into the boxes at random, one number per box. One at a time, each prisoner enters, opens up to <b>50 boxes</b> looking for their own number, then leaves the room exactly as they found it. Nobody can signal or talk to anyone afterwards. If <b>every</b> prisoner finds their own number, all 100 go free. If even one fails, they all stay. They may agree on a plan beforehand.</p>
+
+  <h3>The obvious approach fails</h3>
+  <p>If each prisoner opens 50 boxes at random, each has a 50% chance. The prisoners are independent, so all 100 succeed only with the chance ½ multiplied by itself a hundred times.</p>
+  <div class="stats">
+    <div class="stat"><b>(½)<sup>100</sup></b><span>chance everyone succeeds at random</span></div>
+    <div class="stat"><b>7.9×10⁻³¹</b><span>which is effectively never</span></div>
+    <div class="stat"><b>31.2%</b><span>chance with the loop strategy</span></div>
+  </div>
+
+  <h3>The solution: follow the loop</h3>
+  <p>Every prisoner uses the same three steps:</p>
+  <ul class="plain">
+    <li><b>Start at your own box.</b> Prisoner 17 first opens box 17.</li>
+    <li><b>Go where the number sends you.</b> If box 17 holds 42, open box 42 next.</li>
+    <li><b>Repeat</b> until you find your own number, or you've opened 50 boxes.</li>
+  </ul>
+
+  <h3>Why it works</h3>
+  <p>Every box points to exactly one other box, and every box is pointed to by exactly one other. Following the pointers can't branch or dead-end, so the boxes split into closed <b>loops</b>. The box holding your number is the one that points back to your starting box. Start at your own box and you're always on the loop that contains your number, so you're certain to reach it. You reach it within 50 openings if and only if your loop has 50 boxes or fewer.</p>
+  <p>So everyone goes free exactly when <b>no loop is longer than 50</b>. The prisoners no longer succeed or fail on their own. Everyone on a short loop wins, and everyone on the one long loop, if there is one, loses.</p>
+
+  <figure>
+    <svg viewBox="0 0 720 264" role="img" aria-label="Eight boxes forming three loops">
+    <defs><marker id="ah2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+    <text x="0" y="45.0">Loop A · 3 boxes</text>
+    <rect x="150" y="18" width="64" height="46" rx="6" fill="var(--hot-soft)" stroke="var(--rule)"/>
+    <text class="lbl" x="182.0" y="38" text-anchor="middle">box 1</text>
+    <text x="182.0" y="55" text-anchor="middle">holds 5</text>
+    <path d="M217,41.0 L255,41.0" stroke="var(--muted)" stroke-width="1.5" fill="none" marker-end="url(#ah2)"/>
+    <rect x="258" y="18" width="64" height="46" rx="6" fill="var(--hot-soft)" stroke="var(--rule)"/>
+    <text class="lbl" x="290.0" y="38" text-anchor="middle">box 5</text>
+    <text x="290.0" y="55" text-anchor="middle">holds 3</text>
+    <path d="M325,41.0 L363,41.0" stroke="var(--muted)" stroke-width="1.5" fill="none" marker-end="url(#ah2)"/>
+    <rect x="366" y="18" width="64" height="46" rx="6" fill="var(--hot-soft)" stroke="var(--rule)"/>
+    <text class="lbl" x="398.0" y="38" text-anchor="middle">box 3</text>
+    <text x="398.0" y="55" text-anchor="middle">holds 1</text>
+    <path d="M398.0,66 C398.0,88 182.0,88 182.0,69" stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="3 3" marker-end="url(#ah2)"/>
+    <text x="0" y="125.0">Loop B · 2 boxes</text>
+    <rect x="150" y="98" width="64" height="46" rx="6" fill="var(--panel)" stroke="var(--rule)"/>
+    <text class="lbl" x="182.0" y="118" text-anchor="middle">box 2</text>
+    <text x="182.0" y="135" text-anchor="middle">holds 8</text>
+    <path d="M217,121.0 L255,121.0" stroke="var(--muted)" stroke-width="1.5" fill="none" marker-end="url(#ah2)"/>
+    <rect x="258" y="98" width="64" height="46" rx="6" fill="var(--panel)" stroke="var(--rule)"/>
+    <text class="lbl" x="290.0" y="118" text-anchor="middle">box 8</text>
+    <text x="290.0" y="135" text-anchor="middle">holds 2</text>
+    <path d="M290.0,146 C290.0,168 182.0,168 182.0,149" stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="3 3" marker-end="url(#ah2)"/>
+    <text x="0" y="205.0">Loop C · 3 boxes</text>
+    <rect x="150" y="178" width="64" height="46" rx="6" fill="var(--panel)" stroke="var(--rule)"/>
+    <text class="lbl" x="182.0" y="198" text-anchor="middle">box 4</text>
+    <text x="182.0" y="215" text-anchor="middle">holds 7</text>
+    <path d="M217,201.0 L255,201.0" stroke="var(--muted)" stroke-width="1.5" fill="none" marker-end="url(#ah2)"/>
+    <rect x="258" y="178" width="64" height="46" rx="6" fill="var(--panel)" stroke="var(--rule)"/>
+    <text class="lbl" x="290.0" y="198" text-anchor="middle">box 7</text>
+    <text x="290.0" y="215" text-anchor="middle">holds 6</text>
+    <path d="M325,201.0 L363,201.0" stroke="var(--muted)" stroke-width="1.5" fill="none" marker-end="url(#ah2)"/>
+    <rect x="366" y="178" width="64" height="46" rx="6" fill="var(--panel)" stroke="var(--rule)"/>
+    <text class="lbl" x="398.0" y="198" text-anchor="middle">box 6</text>
+    <text x="398.0" y="215" text-anchor="middle">holds 4</text>
+    <path d="M398.0,226 C398.0,248 182.0,248 182.0,229" stroke="var(--muted)" stroke-width="1.5" fill="none" stroke-dasharray="3 3" marker-end="url(#ah2)"/>
+    <text x="720" y="45.0" text-anchor="end">prisoner 1 starts here</text>
+    </svg>
+    <figcaption>A small version: 8 boxes, and each prisoner may open 4. Prisoner 1 opens box 1 (holds 5), then box 5 (holds 3), then box 3 (holds 1), and finds their number in 3 steps. The longest loop has 3 boxes, within the limit of 4, so all 8 go free. A loop of 5 would have sunk all five prisoners on it together.</figcaption>
+  </figure>
+
+  <h3>The maths behind the 31%</h3>
+  <p>At most one loop can be longer than 50, since two would need more than 100 boxes. In a random arrangement of 100 boxes, the chance of a loop of exactly length <i>L</i>, for any <i>L</i> above 50, is simply <b>1/<i>L</i></b>. Adding those up gives the chance of failure:</p>
+  <p class="num" style="font-size:17px">1/51 + 1/52 + … + 1/100 ≈ 0.688</p>
+  <p>That leaves about <b>31.2%</b> for success. With more prisoners (and half as many openings each) the figure settles at 1 − ln 2 ≈ 30.7%, and it never falls below that.</p>
+  <figure>
+    <svg viewBox="0 0 720 260" role="img" aria-label="Chance of the longest loop length for 100 boxes">
+    <line x1="46" x2="708" y1="224.0" y2="224.0" stroke="var(--grid)"/>
+    <text x="40" y="228.0" text-anchor="end">0%</text>
+    <line x1="46" x2="708" y1="166.3" y2="166.3" stroke="var(--grid)"/>
+    <text x="40" y="170.3" text-anchor="end">10%</text>
+    <line x1="46" x2="708" y1="108.6" y2="108.6" stroke="var(--grid)"/>
+    <text x="40" y="112.6" text-anchor="end">20%</text>
+    <line x1="46" x2="708" y1="50.9" y2="50.9" stroke="var(--grid)"/>
+    <text x="40" y="54.9" text-anchor="end">30%</text>
+    <rect x="46.7" y="44.0" width="329.7" height="180.0" rx="3" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1"/>
+    <text class="lbl" x="211.5" y="36.0" text-anchor="middle">no loop longer than 50: 31.2%</text>
+    <text x="211.5" y="138.0" text-anchor="middle">everyone goes free</text>
+    <rect x="377.7" y="212.7" width="5.3" height="11.3" fill="var(--poor)" opacity="0.8"/>
+    <rect x="384.3" y="212.9" width="5.3" height="11.1" fill="var(--poor)" opacity="0.8"/>
+    <rect x="390.9" y="213.1" width="5.3" height="10.9" fill="var(--poor)" opacity="0.8"/>
+    <rect x="397.5" y="213.3" width="5.3" height="10.7" fill="var(--poor)" opacity="0.8"/>
+    <rect x="404.1" y="213.5" width="5.3" height="10.5" fill="var(--poor)" opacity="0.8"/>
+    <rect x="410.8" y="213.7" width="5.3" height="10.3" fill="var(--poor)" opacity="0.8"/>
+    <rect x="417.4" y="213.9" width="5.3" height="10.1" fill="var(--poor)" opacity="0.8"/>
+    <rect x="424.0" y="214.0" width="5.3" height="10.0" fill="var(--poor)" opacity="0.8"/>
+    <rect x="430.6" y="214.2" width="5.3" height="9.8" fill="var(--poor)" opacity="0.8"/>
+    <rect x="437.2" y="214.4" width="5.3" height="9.6" fill="var(--poor)" opacity="0.8"/>
+    <rect x="443.9" y="214.5" width="5.3" height="9.5" fill="var(--poor)" opacity="0.8"/>
+    <rect x="450.5" y="214.7" width="5.3" height="9.3" fill="var(--poor)" opacity="0.8"/>
+    <rect x="457.1" y="214.8" width="5.3" height="9.2" fill="var(--poor)" opacity="0.8"/>
+    <rect x="463.7" y="215.0" width="5.3" height="9.0" fill="var(--poor)" opacity="0.8"/>
+    <rect x="470.3" y="215.1" width="5.3" height="8.9" fill="var(--poor)" opacity="0.8"/>
+    <rect x="477.0" y="215.3" width="5.3" height="8.7" fill="var(--poor)" opacity="0.8"/>
+    <rect x="483.6" y="215.4" width="5.3" height="8.6" fill="var(--poor)" opacity="0.8"/>
+    <rect x="490.2" y="215.5" width="5.3" height="8.5" fill="var(--poor)" opacity="0.8"/>
+    <rect x="496.8" y="215.6" width="5.3" height="8.4" fill="var(--poor)" opacity="0.8"/>
+    <rect x="503.4" y="215.8" width="5.3" height="8.2" fill="var(--poor)" opacity="0.8"/>
+    <rect x="510.1" y="215.9" width="5.3" height="8.1" fill="var(--poor)" opacity="0.8"/>
+    <rect x="516.7" y="216.0" width="5.3" height="8.0" fill="var(--poor)" opacity="0.8"/>
+    <rect x="523.3" y="216.1" width="5.3" height="7.9" fill="var(--poor)" opacity="0.8"/>
+    <rect x="529.9" y="216.2" width="5.3" height="7.8" fill="var(--poor)" opacity="0.8"/>
+    <rect x="536.5" y="216.3" width="5.3" height="7.7" fill="var(--poor)" opacity="0.8"/>
+    <rect x="543.2" y="216.4" width="5.3" height="7.6" fill="var(--poor)" opacity="0.8"/>
+    <rect x="549.8" y="216.5" width="5.3" height="7.5" fill="var(--poor)" opacity="0.8"/>
+    <rect x="556.4" y="216.6" width="5.3" height="7.4" fill="var(--poor)" opacity="0.8"/>
+    <rect x="563.0" y="216.7" width="5.3" height="7.3" fill="var(--poor)" opacity="0.8"/>
+    <rect x="569.6" y="216.8" width="5.3" height="7.2" fill="var(--poor)" opacity="0.8"/>
+    <rect x="576.3" y="216.9" width="5.3" height="7.1" fill="var(--poor)" opacity="0.8"/>
+    <rect x="582.9" y="217.0" width="5.3" height="7.0" fill="var(--poor)" opacity="0.8"/>
+    <rect x="589.5" y="217.0" width="5.3" height="7.0" fill="var(--poor)" opacity="0.8"/>
+    <rect x="596.1" y="217.1" width="5.3" height="6.9" fill="var(--poor)" opacity="0.8"/>
+    <rect x="602.7" y="217.2" width="5.3" height="6.8" fill="var(--poor)" opacity="0.8"/>
+    <rect x="609.4" y="217.3" width="5.3" height="6.7" fill="var(--poor)" opacity="0.8"/>
+    <rect x="616.0" y="217.4" width="5.3" height="6.6" fill="var(--poor)" opacity="0.8"/>
+    <rect x="622.6" y="217.4" width="5.3" height="6.6" fill="var(--poor)" opacity="0.8"/>
+    <rect x="629.2" y="217.5" width="5.3" height="6.5" fill="var(--poor)" opacity="0.8"/>
+    <rect x="635.8" y="217.6" width="5.3" height="6.4" fill="var(--poor)" opacity="0.8"/>
+    <rect x="642.5" y="217.7" width="5.3" height="6.3" fill="var(--poor)" opacity="0.8"/>
+    <rect x="649.1" y="217.7" width="5.3" height="6.3" fill="var(--poor)" opacity="0.8"/>
+    <rect x="655.7" y="217.8" width="5.3" height="6.2" fill="var(--poor)" opacity="0.8"/>
+    <rect x="662.3" y="217.9" width="5.3" height="6.1" fill="var(--poor)" opacity="0.8"/>
+    <rect x="668.9" y="217.9" width="5.3" height="6.1" fill="var(--poor)" opacity="0.8"/>
+    <rect x="675.6" y="218.0" width="5.3" height="6.0" fill="var(--poor)" opacity="0.8"/>
+    <rect x="682.2" y="218.1" width="5.3" height="5.9" fill="var(--poor)" opacity="0.8"/>
+    <rect x="688.8" y="218.1" width="5.3" height="5.9" fill="var(--poor)" opacity="0.8"/>
+    <rect x="695.4" y="218.2" width="5.3" height="5.8" fill="var(--poor)" opacity="0.8"/>
+    <rect x="702.0" y="218.2" width="5.3" height="5.8" fill="var(--poor)" opacity="0.8"/>
+    <text x="542.5" y="202.7" text-anchor="middle">one loop of length L: chance 1/L</text>
+    <text x="49.3" y="240" text-anchor="middle">1</text>
+    <text x="208.2" y="240" text-anchor="middle">25</text>
+    <text x="373.7" y="240" text-anchor="middle">50</text>
+    <text x="539.2" y="240" text-anchor="middle">75</text>
+    <text x="704.7" y="240" text-anchor="middle">100</text>
+    <text x="708" y="257" text-anchor="end">length of the longest loop →</text>
+    </svg>
+    <figcaption>The length of the longest loop across every possible arrangement of 100 boxes. The prisoners win whenever it's 50 or less (green). Each red bar is the one-in-L chance that a single loop of length L sinks everyone on it.</figcaption>
+  </figure>
+
+  <h3>Two things worth knowing</h3>
+  <ul class="plain">
+    <li><b>No one's personal odds change.</b> Each prisoner still finds their number exactly half the time. The strategy wins by making the outcomes move together, which only helps when success is all or nothing.</li>
+    <li><b>A spiteful warden can be beaten.</b> If the warden knows the plan and arranges one giant loop, the prisoners can secretly agree a random relabelling of the boxes beforehand. That restores the 31%.</li>
+  </ul>
+
+  <h3>From the puzzle to marketing</h3>
+  <p>A campaign counts total sales, not "everyone or no one", so the correlation effect on its own adds nothing there. What carries over is the <i>structure</i>: organising the search into loops, rotating through them, and letting each result tell you where to look next. That is the idea tested in the rest of this page.</p>
+</section>
+
+<section>
+  <span class="eyebrow">2 · The marketing problem</span>
+  <h2>One product, an audience of IPs, a fixed daily budget</h2>
+  <p>The audience is a set of IP addresses grouped into circles, such as /24 subnets or local areas. Each day you can afford a fixed number of impressions. Most impressions don't convert; those are the failures. Two facts shape the problem:</p>
+  <ul class="plain">
+    <li><b>Circles differ.</b> Some circles convert much better than others, and neighbouring circles tend to be alike.</li>
+    <li><b>Repeats wear out.</b> Showing the same IP again within a few days converts less well (ad fatigue).</li>
+  </ul>
+  <figure>
+    <svg viewBox="0 0 720 250" role="img" aria-label="The strategy loop: spread, learn, shift, rest, rejoin">
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
+      <g stroke="var(--muted)" stroke-width="1.5" fill="none" marker-end="url(#ah)">
+        <path d="M150,70 L262,70"/><path d="M398,70 L510,70"/><path d="M580,98 L580,150"/>
+        <path d="M510,180 L398,180"/><path d="M262,180 L150,180"/><path d="M80,152 L80,100"/>
+      </g>
+      <g>
+        <rect x="10" y="42" width="140" height="56" rx="8" fill="var(--cool-soft)"/>
+        <text class="lbl" x="80" y="66" text-anchor="middle">Spread a little</text><text x="80" y="84" text-anchor="middle">across all circles</text>
+        <rect x="262" y="42" width="136" height="56" rx="8" fill="var(--panel)" stroke="var(--rule)"/>
+        <text class="lbl" x="330" y="66" text-anchor="middle">Count sales</text><text x="330" y="84" text-anchor="middle">per circle only</text>
+        <rect x="510" y="42" width="140" height="56" rx="8" fill="var(--hot-soft)"/>
+        <text class="lbl" x="580" y="66" text-anchor="middle">Shift budget</text><text x="580" y="84" text-anchor="middle">to hot circles + neighbours</text>
+        <rect x="510" y="152" width="140" height="56" rx="8" fill="var(--hot-soft)"/>
+        <text class="lbl" x="580" y="176" text-anchor="middle">Show fresh IPs</text><text x="580" y="194" text-anchor="middle">in those circles</text>
+        <rect x="262" y="152" width="136" height="56" rx="8" fill="var(--panel)" stroke="var(--rule)"/>
+        <text class="lbl" x="330" y="176" text-anchor="middle">Rest the misses</text><text x="330" y="194" text-anchor="middle">until fatigue wears off</text>
+        <rect x="10" y="152" width="140" height="56" rx="8" fill="var(--cool-soft)"/>
+        <text class="lbl" x="80" y="176" text-anchor="middle">Rejoin the loop</text><text x="80" y="194" text-anchor="middle">a later round</text>
+      </g>
+      <text x="360" y="238" text-anchor="middle">repeat every day · cold circles fade out on their own</text>
+    </svg>
+    <figcaption>"Hot circles + retry loop", the strategy that came out on top. It learns only from sales totals per circle, never from individual profiles.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <span class="eyebrow">3 · What the simulation found</span>
+  <h2>Same budget, twice the sales</h2>
+  <p>20,000 IPs in 100 circles, 500 impressions a day for 30 days, averaged over 10 simulated campaigns. Every strategy ran on the same audiences.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Strategy</th><th class="r">Sales</th><th class="r">Failures per sale</th><th class="r">vs random</th></tr></thead>
+    <tbody>
+      <tr><td><span class="bar" style="width:34px;background:var(--base)"></span>Random blast</td><td class="r">132</td><td class="r">113</td><td class="r">baseline</td></tr>
+      <tr><td><span class="bar" style="width:33px;background:var(--cool)"></span>Even rotation through circles</td><td class="r">129</td><td class="r">115</td><td class="r">−2%</td></tr>
+      <tr><td><span class="bar" style="width:49px;background:color-mix(in srgb, var(--hot) 55%, var(--panel))"></span>Follow hot circles</td><td class="r">194</td><td class="r">76</td><td class="r">+48%</td></tr>
+      <tr class="best"><td><span class="bar" style="width:67px;background:var(--hot)"></span>Hot circles + retry loop</td><td class="r">264</td><td class="r">56</td><td class="r">+100%</td></tr>
+      <tr><td><span class="bar" style="width:100px;background:var(--ink)"></span>Perfect knowledge (ceiling)</td><td class="r">392</td><td class="r">37</td><td class="r">+197%</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Rotation alone did nothing.</b> The budget never reaches every IP, so a random blast rarely repeats anyone anyway. <b>Following hot circles did most of the work:</b> in one campaign it put 59% of the budget into the best fifth of circles, which convert 3.2× the average. <b>The retry loop added the rest</b> by stopping the hot circles from being hammered.</p>
+</section>
+
+<section>
+  <span class="eyebrow">4 · When it works</span>
+  <h2>The gain depends on your audience</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Scenario</th><th class="r">Follow hot circles</th><th class="r">Hot circles + retry</th></tr></thead>
+    <tbody>
+      <tr><td>Circles differ a lot (default)</td><td class="r">+60%</td><td class="r">+113%</td></tr>
+      <tr><td>Sparse sales (0.3% instead of 1%)</td><td class="r">+51%</td><td class="r">+71%</td></tr>
+      <tr><td>Neighbouring circles unrelated</td><td class="r">+39%</td><td class="r">+74%</td></tr>
+      <tr><td>Circles only mildly different</td><td class="r">+19%</td><td class="r">+37%</td></tr>
+      <tr><td>Mild differences and sparse sales</td><td class="r">−2%</td><td class="r">+6%</td></tr>
+      <tr><td>No fatigue from repeats</td><td class="r">+196%</td><td class="r">+96%</td></tr>
+    </tbody>
+  </table></div>
+  <div class="conds">
+    <div class="cond"><i>1</i><div><h3>Circles must convert differently</h3><p>If every circle converts about the same, there's no hot circle to find. This matters most.</p></div></div>
+    <div class="cond"><i>2</i><div><h3>Hot circles must stay hot</h3><p>A circle that sold well last week has to keep selling well this week, or following it is chasing noise.</p></div></div>
+    <div class="cond"><i>3</i><div><h3>Enough sales to learn from</h3><p>Every sale is a data point. With very few, the strategy can't tell hot circles from lucky ones.</p></div></div>
+    <div class="cond"><i>4</i><div><h3>Neighbours alike (a bonus)</h3><p>When side-by-side subnets behave alike, one hot circle points to others, and the strategy learns faster.</p></div></div>
+    <div class="cond"><i>5</i><div><h3>Fatigue decides the retry loop</h3><p>If repeats lose impact, rest IPs between showings. If they don't, resting good IPs wastes them, so skip it.</p></div></div>
+  </div>
+</section>
+
+<section>
+  <span class="eyebrow">5 · Checking a real campaign</span>
+  <h2>Look back first, then test forward</h2>
+  <p>The diagnosis page takes a finished campaign as either an impression log (<code class="num">date, ip, converted</code>) or daily totals per circle. It tests each condition above and estimates the gain. On sample data with known settings it gets both cases right:</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th></th><th>Uneven sample</th><th>Flat sample</th></tr></thead>
+    <tbody>
+      <tr><td>Verdict</td><td><b style="color:var(--good)">Likely</b></td><td><b style="color:var(--poor)">Unlikely</b>, and skip the retry loop</td></tr>
+      <tr><td>Top fifth of circles, second half</td><td class="num">2.2× average</td><td class="num">about 1×</td></tr>
+      <tr><td>Estimated gain</td><td class="num">+76%</td><td class="num">+5%</td></tr>
+    </tbody>
+  </table></div>
+  <p>A good diagnosis is a reason to test, not proof. To settle it, <b>split your circles into two random halves</b>. Run hot circles + retry on one half and your usual targeting on the other, with the same budget, for 2–4 weeks. Aim for at least 100 sales per half, then compare cost per sale.</p>
+</section>
+
+<section>
+  <span class="eyebrow">6 · Risks</span>
+  <h2>Before running this for real</h2>
+  <ul class="plain">
+    <li><b>IP addresses are personal data</b> in the EU and UK. Targeting by IP needs a legal basis. Working from circle totals rather than individual IPs reduces what you have to keep.</li>
+    <li><b>IPs are messy.</b> Homes, offices and mobile carriers share addresses, and many change often. Circles hold up better than single IPs, but the signal is blurrier than in the simulation.</li>
+    <li><b>Attribution is the hard part.</b> The strategy needs each sale tied back to a circle. Browsers and privacy rules increasingly block that tracking.</li>
+    <li><b>It isn't new.</b> Shifting budget to what converts and capping frequency are standard; ad platforms already do versions of both. The value here is doing it deliberately at the circle level, and checking the conditions first.</li>
+  </ul>
+</section>
+
+<section>
+  <span class="eyebrow">The tools</span>
+  <div class="tools">
+    <a href="index.html"><b>IP circles simulator</b><span>Set the audience, budget and fatigue, and compare the strategies.</span></a>
+    <a href="diagnose.html"><b>Diagnose a campaign</b><span>Load past results and check whether the strategy would have worked.</span></a>
+    <a href="puzzle.html"><b>The 100 prisoners puzzle</b><span>The original puzzle, playable, with the marketing analogy.</span></a>
+    <a href="ads.html"><b>Ad variants</b><span>An earlier study: which creative each person should see next.</span></a>
+  </div>
+</section>
+
+<footer>All figures come from simulations in this repo (<code>python -m prisoners</code>) with the settings stated above. They show what's possible under those assumptions, not what any particular campaign will get.</footer>
+</div>
+</body>
+</html>

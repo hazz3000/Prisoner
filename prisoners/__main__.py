@@ -11,7 +11,7 @@ import argparse
 import json
 import sys
 
-from . import campaign, circles
+from . import campaign, circles, diagnose
 from .engine import STRATEGIES, exact_p_all, min_successes, simulate
 
 
@@ -108,9 +108,59 @@ def circles_main(argv: list[str]) -> None:
               f"{r.mean / (blast.mean or 1) - 1:>+9.0%}")
 
 
+def diagnose_main(argv: list[str]) -> None:
+    p = argparse.ArgumentParser(prog="prisoners diagnose",
+                                description="Could hot circles + retry loop have worked on a finished campaign?")
+    p.add_argument("csv", help="impression log (date, ip, converted) or circle totals (date, circle, impressions, conversions)")
+    p.add_argument("--prefix", type=int, default=24, help="IPv4 subnet size that makes a circle (default 24)")
+    p.add_argument("--cooldown", type=int, default=7, help="days a showing counts as recent (default 7)")
+    p.add_argument("--no-sim", action="store_true", help="skip the what-if simulation")
+    p.add_argument("--json", action="store_true")
+    a = p.parse_args(argv)
+
+    d = diagnose.diagnose(diagnose.load_csv(a.csv, a.prefix), cooldown=a.cooldown, simulate=not a.no_sim)
+    if a.json:
+        print(json.dumps({"verdict": d.verdict, "checks": [vars(c) for c in d.checks], "whatif": d.whatif,
+                          "fitted": vars(d.fitted) if d.fitted else None, "summary": d.summary}, indent=2, default=str))
+        return
+    mark = {"good": "[ok]  ", "mixed": "[~]   ", "poor": "[x]   ", "n/a": "[n/a] "}
+    print(f"Verdict: {d.verdict}\n")
+    for c in d.checks:
+        print(f"{mark[c.status]}{c.title}\n      {c.finding}\n")
+    print(f"The campaign put {d.summary['budget_in_top_fifth']:.0%} of its impressions in the best fifth of circles "
+          f"(an even spread is 20%).")
+    if d.whatif:
+        f = d.fitted
+        print(f"\nWhat-if, simulated with the fitted numbers (spread {f.spread}, neighbours {f.similarity}, "
+              f"fatigue {f.fatigue}{' assumed' if d.whatif['fatigue_assumed'] else ''}):")
+        print(f"  Follow hot circles        {d.whatif['hot']:+.0%} sales vs a random blast")
+        print(f"  Hot circles + retry loop  {d.whatif['hot_retry']:+.0%} sales vs a random blast")
+        if d.whatif["scaled"]:
+            print("  (simulated on a scaled-down copy of the audience to keep it quick)")
+
+
+def sample_main(argv: list[str]) -> None:
+    p = argparse.ArgumentParser(prog="prisoners sample-data", description="Write a sample campaign log with known settings")
+    p.add_argument("out", help="CSV file to write")
+    p.add_argument("--spread", type=float, default=1.0)
+    p.add_argument("--similarity", type=float, default=0.7)
+    p.add_argument("--fatigue", type=float, default=0.5)
+    p.add_argument("--seed", type=int, default=42)
+    a = p.parse_args(argv)
+    s = circles.Settings(ips=20000, circles=100, days=28, per_day=800, spread=a.spread,
+                         similarity=a.similarity, fatigue=a.fatigue, seed=a.seed)
+    diagnose.sample_log(a.out, s)
+    print(f"Wrote {s.days * s.per_day:,} impressions to {a.out} "
+          f"(spread {s.spread}, neighbours {s.similarity}, fatigue {s.fatigue})")
+
+
 def main(argv: list[str] | None = None) -> None:
     argv = sys.argv[1:] if argv is None else argv
-    if argv and argv[0] == "puzzle":
+    if argv and argv[0] == "diagnose":
+        diagnose_main(argv[1:])
+    elif argv and argv[0] == "sample-data":
+        sample_main(argv[1:])
+    elif argv and argv[0] == "puzzle":
         puzzle_main(argv[1:])
     elif argv and argv[0] == "ads":
         campaign_main(argv[1:])

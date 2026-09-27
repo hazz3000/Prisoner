@@ -37,6 +37,34 @@ python -m prisoners --spread 0.2      # circles nearly alike
 python -m prisoners --fatigue 1       # no fatigue
 ```
 
+## Diagnose a finished campaign (`diagnose.html`, `python -m prisoners diagnose`)
+
+Load a past campaign's results and check whether hot circles + retry loop could have worked on it. Two input shapes:
+
+```
+date,ip,converted                      one row per impression (full diagnosis)
+date,circle,impressions,conversions    daily totals per circle (no fatigue check)
+```
+
+IPs are grouped into /24 subnets (IPv6: /48); `--prefix` changes the IPv4 size. The checks:
+
+| Check | What it asks |
+|---|---|
+| Enough sales | are there enough conversions to learn from? |
+| Circles differ | do circles convert differently beyond chance? (dispersion test) |
+| Hot stays hot | the first half's top fifth of circles: did they beat the average in the second half? |
+| Neighbours alike | do side-by-side subnets convert alike? |
+| Fatigue | do repeat showings within the window convert worse? (impression log only) |
+
+The fitted numbers then go into the simulator for a what-if estimate. The web page reads files in the browser; nothing
+is uploaded. It's evidence, not proof: a split test on two random halves of your circles settles it.
+
+```bash
+python -m prisoners sample-data sample.csv            # a campaign log with known settings
+python -m prisoners diagnose sample.csv
+python -m prisoners diagnose my-campaign.csv --prefix 16 --cooldown 14
+```
+
 ## Ad variants (`ads.html`, `python -m prisoners ads`)
 
 Which ad should each person see next, when all you keep is campaign totals?
