@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Follow the Lead</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root {
+  --paper: #f4f5f2; --panel: #ffffff; --ink: #1c2230; --muted: #5c6474; --rule: #dcdfd8; --grid: #e8eae4;
+  --cohort: #b8741a; --cohort-soft: #f1e2c9;
+  --blind: #4d6a94; --blind-soft: #dce4ef;
+  --base: #8a8f98; --base-soft: #e6e7e9;
+  --good: #3d7a4f;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #14171d; --panel: #1c2028; --ink: #e9eae6; --muted: #9aa1ad; --rule: #2e3440; --grid: #262b34;
+    --cohort: #e0a04a; --cohort-soft: #3b2f1c; --blind: #86a3cc; --blind-soft: #232d3c;
+    --base: #8d939d; --base-soft: #2a2e36; --good: #7cc08f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #14171d; --panel: #1c2028; --ink: #e9eae6; --muted: #9aa1ad; --rule: #2e3440; --grid: #262b34;
+  --cohort: #e0a04a; --cohort-soft: #3b2f1c; --blind: #86a3cc; --blind-soft: #232d3c;
+  --base: #8d939d; --base-soft: #2a2e36; --good: #7cc08f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 15px/1.55 var(--body); padding-inline: 20px; padding-block: 32px 64px; }
+a { color: var(--cohort); }
+.wrap { max-width: 1160px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2 { font-family: var(--display); text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(30px, 5vw, 50px); font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; }
+h2 { font-size: 20px; font-weight: 600; }
+p { margin: 0; max-width: 70ch; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+header { display: grid; gap: 14px; }
+header p { font-size: 17px; color: var(--muted); }
+nav { display: flex; gap: 16px; font-size: 14px; }
+
+.main { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: start; }
+@media (max-width: 860px) { .main { grid-template-columns: 1fr; } }
+.controls { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; display: grid; gap: 16px; position: sticky; top: 16px; }
+@media (max-width: 860px) { .controls { position: static; } }
+.controls h3 { margin: 0; font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border-top: 1px solid var(--rule); padding-top: 14px; }
+.controls h3:first-of-type { border-top: 0; padding-top: 0; }
+.ctl { display: grid; gap: 4px; }
+.ctl label { display: flex; justify-content: space-between; gap: 8px; font-weight: 500; font-size: 14px; }
+.ctl output { font: 500 13.5px var(--mono); font-variant-numeric: tabular-nums; }
+.ctl small { color: var(--muted); font-size: 12.5px; line-height: 1.4; }
+input[type=range] { width: 100%; accent-color: var(--cohort); }
+button { font: 600 14px var(--body); padding: 9px 14px; border-radius: 7px; cursor: pointer; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); }
+button.ghost { background: transparent; color: var(--ink); border-color: var(--rule); }
+button:disabled { opacity: .55; cursor: progress; }
+button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px solid var(--cohort); outline-offset: 2px; }
+.btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.presets button { padding: 6px 10px; font-size: 13px; }
+
+.results { display: grid; gap: 24px; min-width: 0; }
+section.card { background: var(--panel); border: 1px solid var(--rule); border-radius: 10px; padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.note { color: var(--muted); font-size: 13.5px; }
+.status { font: 500 12px var(--mono); color: var(--muted); }
+
+.rank { display: grid; gap: 10px; }
+.row { display: grid; grid-template-columns: minmax(150px, 230px) 1fr auto; gap: 12px; align-items: center; }
+@media (max-width: 560px) { .row { grid-template-columns: 1fr auto; } .row .bar { grid-column: 1 / -1; order: 3; } }
+.row .name { font-weight: 500; font-size: 14px; display: grid; gap: 1px; }
+.row .name small { color: var(--muted); font-weight: 400; font-size: 12px; }
+.bar { height: 22px; background: var(--grid); border-radius: 4px; position: relative; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; border-radius: 4px; transition: width .35s ease; }
+.row .num { font: 500 14px var(--mono); font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.row .num small { display: block; color: var(--muted); font-size: 12px; }
+.tag { display: inline-block; font: 500 10.5px var(--mono); letter-spacing: .05em; text-transform: uppercase; padding: 1px 6px; border-radius: 3px; margin-left: 6px; vertical-align: 1px; }
+.tag.cohort { background: var(--cohort-soft); color: var(--cohort); }
+.tag.blind { background: var(--blind-soft); color: var(--blind); }
+.tag.base { background: var(--base-soft); color: var(--muted); }
+
+.answer { display: grid; gap: 10px; padding: 16px 18px; border-left: 3px solid var(--blind); background: var(--panel); border-radius: 0 10px 10px 0; }
+.answer strong { font-family: var(--display); font-size: 17px; font-weight: 600; }
+
+.chart { width: 100%; overflow-x: auto; }
+svg text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+
+.square-wrap { overflow-x: auto; }
+table.square { border-collapse: separate; border-spacing: 2px; font: 500 10px var(--mono); }
+table.square th { color: var(--muted); font-weight: 500; padding: 0 4px; text-align: right; white-space: nowrap; }
+table.square thead th { text-align: center; padding: 0 0 2px; }
+table.square td { width: 22px; height: 22px; min-width: 22px; text-align: center; border-radius: 3px; color: var(--ink); }
+
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 640px) { .two { grid-template-columns: 1fr; } }
+.two div { display: grid; gap: 6px; }
+.two h4 { margin: 0; font: 600 14px var(--body); }
+.two ul { margin: 0; padding-left: 18px; font-size: 14px; display: grid; gap: 3px; }
+footer { color: var(--muted); font-size: 13px; }
+code { font-family: var(--mono); font-size: 13px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <nav><span class="eyebrow">Campaign simulator</span><a href="puzzle.html">The 100 prisoners puzzle →</a></nav>
+  <h1>Which ad should each person see next?</h1>
+  <p>Each person in your audience will see up to a few of your ads. The only data kept is campaign totals: impressions and conversions per cohort and ad, nothing about any person. This page simulates each strategy for choosing those ads on the same audience, then shows how many conversions each one gets.</p>
+</header>
+
+<div class="main">
+  <form class="controls" id="controls" autocomplete="off">
+    <h3>Presets</h3>
+    <div class="presets">
+      <button type="button" class="ghost" data-preset="distinct">Distinct cohorts</button>
+      <button type="button" class="ghost" data-preset="shared">Shared taste</button>
+      <button type="button" class="ghost" data-preset="big">Large audience</button>
+    </div>
+
+    <h3>Campaign</h3>
+    <div class="ctl"><label for="audience">Audience <output id="audience-out"></output></label>
+      <input type="range" id="audience" min="1000" max="50000" step="1000" value="5000"></div>
+    <div class="ctl"><label for="cohorts">Cohorts <output id="cohorts-out"></output></label>
+      <input type="range" id="cohorts" min="1" max="30" step="1" value="10"></div>
+    <div class="ctl"><label for="ads">Ad variants <output id="ads-out"></output></label>
+      <input type="range" id="ads" min="3" max="50" step="1" value="20"></div>
+    <div class="ctl"><label for="perPerson">Ads per person <output id="perPerson-out"></output></label>
+      <input type="range" id="perPerson" min="1" max="10" step="1" value="5">
+      <small>Your frequency cap. No one sees the same ad twice.</small></div>
+
+    <h3>How people respond</h3>
+    <div class="ctl"><label for="base">Ordinary ad converts <output id="base-out"></output></label>
+      <input type="range" id="base" min="0.1" max="5" step="0.1" value="1"></div>
+    <div class="ctl"><label for="best">Best ad for a cohort converts <output id="best-out"></output></label>
+      <input type="range" id="best" min="1" max="20" step="0.5" value="8"></div>
+    <div class="ctl"><label for="winners">Strong ads per cohort <output id="winners-out"></output></label>
+      <input type="range" id="winners" min="1" max="10" step="1" value="2"></div>
+    <div class="ctl"><label for="overlap">Shared taste <output id="overlap-out"></output></label>
+      <input type="range" id="overlap" min="0" max="100" step="5" value="0">
+      <small>How often a cohort's strong ads are ones everybody likes. This is what blind strategies can find.</small></div>
+
+    <h3>Method</h3>
+    <div class="ctl"><label for="testShare">Test phase <output id="testShare-out"></output></label>
+      <input type="range" id="testShare" min="5" max="60" step="5" value="20">
+      <small>Share of the audience used for the crossed rotation before it switches to the winners.</small></div>
+    <div class="ctl"><label for="runs">Campaigns to average <output id="runs-out"></output></label>
+      <input type="range" id="runs" min="1" max="30" step="1" value="10"></div>
+
+    <div class="btns">
+      <button type="submit" id="run">Run again</button>
+      <button type="button" class="ghost" id="reset">Reset</button>
+    </div>
+  </form>
+
+  <div class="results">
+    <section class="card">
+      <div class="card-head">
+        <h2>Conversions by strategy</h2>
+        <span class="status" id="status">running…</span>
+      </div>
+      <div class="rank" id="rank"></div>
+      <div class="legend">
+        <span><span class="tag cohort">cohort</span> uses cohort totals</span>
+        <span><span class="tag blind">blind</span> knows nothing about the person</span>
+        <span><span class="tag base">baseline</span> no learning / upper limit</span>
+      </div>
+    </section>
+
+    <div class="answer" id="answer"></div>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>Conversion rate as the campaign runs</h2>
+        <span class="eyebrow">cumulative</span>
+      </div>
+      <p class="note">Each strategy pays for learning early on. The crossed rotation's test phase shows as a flat stretch, then a jump once it switches to each cohort's winners.</p>
+      <div class="chart" id="curve"></div>
+      <div class="legend" id="curve-legend"></div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>The crossed rotation</h2>
+        <span class="eyebrow" id="square-note"></span>
+      </div>
+      <p class="note">During the test phase, each new person in a cohort gets the next block of ads in a fixed loop, and each cohort starts the loop at a different point. Every cohort tests every ad evenly with no repeats, and staggered starts spread each ad's early tests across cohorts. The shade shows the round in which a cohort first tests each ad.</p>
+      <div class="square-wrap" id="square"></div>
+    </section>
+
+    <section class="card">
+      <h2>What the strategies do</h2>
+      <div class="two">
+        <div>
+          <h4>Knows the cohort</h4>
+          <ul>
+            <li><b>Crossed rotation, then exploit.</b> Test every cohort × ad pair evenly, then give each cohort its best ads.</li>
+            <li><b>Cohort bandit.</b> Keep shifting each cohort's traffic toward the ads that are working for it.</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Blind</h4>
+          <ul>
+            <li><b>Learn overall best.</b> Shift everyone's traffic toward the ads that work best overall.</li>
+            <li><b>Follow the lead.</b> The prisoners-puzzle idea. Choose the next ad from what converted after the previous ad, and whether it was clicked.</li>
+          </ul>
+        </div>
+      </div>
+      <p class="note">Rotate at random is the baseline. Perfect knowledge knows every true rate and is the upper limit. The model assumes a person converts at most once and clicks run at about four times the conversion rate. The same Python engine runs from the repo: <code>python -m prisoners --help</code>.</p>
+    </section>
+  </div>
+</div>
+<footer>Every strategy runs on the same simulated audiences, so the differences come from the strategy alone.</footer>
+</div>
+
+<script type="text/plain" id="engine-src">
+// Mirrors prisoners/campaign.py. Runs inside a Web Worker.
+const STRATS = ["rotate", "crossed", "bandit", "blind", "lead", "oracle"];
+const CLICK_MULT = 4, LEAD_PRIOR = 20;
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function gamma(a, r) {
+  if (a < 1) return gamma(a + 1, r) * Math.pow(r() || 1e-12, 1 / a);
+  const d = a - 1 / 3, c = 1 / Math.sqrt(9 * d);
+  for (;;) {
+    let x, v;
+    do {
+      const u1 = r() || 1e-12, u2 = r();
+      x = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+      v = 1 + c * x;
+    } while (v <= 0);
+    v = v * v * v;
+    const u = r() || 1e-12;
+    if (Math.log(u) < 0.5 * x * x + d - d * v + d * Math.log(v)) return d * v;
+  }
+}
+function beta(a, b, r) { const x = gamma(a, r), y = gamma(b, r); return x / (x + y); }
+function sampleK(A, K, r) {
+  const a = Array.from({ length: A }, (_, i) => i);
+  for (let i = 0; i < K; i++) { const j = i + Math.floor(r() * (A - i)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a.slice(0, K);
+}
+function thompsonOrder(stats, r) {
+  return stats.map((s, i) => [beta(s[0], s[1], r), i]).sort((x, y) => y[0] - x[0]).map(x => x[1]);
+}
+function makeWorld(s, r) {
+  const fav = sampleK(s.ads, s.winners, r), conv = [];
+  for (let c = 0; c < s.cohorts; c++) {
+    const row = new Array(s.ads).fill(s.base), chosen = new Set();
+    for (let i = 0; i < s.winners; i++) {
+      let a;
+      if (r() < s.overlap && !chosen.has(fav[i])) a = fav[i];
+      else { const opts = []; for (let x = 0; x < s.ads; x++) if (!chosen.has(x)) opts.push(x); a = opts[Math.floor(r() * opts.length)]; }
+      chosen.add(a);
+      row[a] = s.best * (0.6 + 0.4 * r());
+    }
+    conv.push(row);
+  }
+  const click = conv.map(row => row.map(p => Math.min(0.5, Math.max(p, CLICK_MULT * p * (0.7 + 0.6 * r()))))) ;
+  return { conv, click };
+}
+function runOnce(strategy, s, world, people, r, checkpoints) {
+  const A = s.ads, K = s.perPerson;
+  const cs = Array.from({ length: s.cohorts }, () => Array.from({ length: A }, () => [1, 1]));
+  const overall = Array.from({ length: A }, () => [1, 1]);
+  const paths = new Map();
+  const seenC = new Array(s.cohorts).fill(0);
+  const testUntil = Math.floor(s.testShare * s.audience);
+  const stride = Math.max(1, Math.floor(A / s.cohorts));
+  const oracle = world.conv.map(row => row.map((p, i) => [p, i]).sort((x, y) => y[0] - x[0]).slice(0, K).map(x => x[1]));
+  let total = 0, cp = 0; const curve = [];
+  for (let u = 0; u < people.length; u++) {
+    const c = people[u];
+    let order = null;
+    if (strategy === "rotate") order = sampleK(A, K, r);
+    else if (strategy === "crossed") {
+      if (u < testUntil) { const start = (seenC[c] * K + c * stride) % A; order = []; for (let i = 0; i < K; i++) order.push((start + i) % A); }
+      else { const st = cs[c]; order = st.map((x, i) => [x[0] / (x[0] + x[1]), i]).sort((x, y) => y[0] - x[0]).slice(0, K).map(x => x[1]); }
+    }
+    else if (strategy === "bandit") order = thompsonOrder(cs[c], r).slice(0, K);
+    else if (strategy === "blind") order = thompsonOrder(overall, r).slice(0, K);
+    else if (strategy === "oracle") order = oracle[c];
+    seenC[c]++;
+    let prev = null; const shown = new Uint8Array(A);
+    for (let slot = 0; slot < K; slot++) {
+      let a;
+      if (strategy === "lead") {
+        if (prev === null) a = thompsonOrder(overall, r)[0];
+        else {
+          let st = paths.get(prev);
+          if (!st) { st = Array.from({ length: A }, () => [0, 0]); paths.set(prev, st); }
+          let bestDraw = -1; a = 0;
+          for (let b = 0; b < A; b++) {
+            if (shown[b]) continue;
+            const g = overall[b], w = LEAD_PRIOR / (g[0] + g[1]);
+            const d = beta(st[b][0] + g[0] * w, st[b][1] + g[1] * w, r);
+            if (d > bestDraw) { bestDraw = d; a = b; }
+          }
+        }
+      } else a = order[slot];
+      shown[a] = 1;
+      const converted = r() < world.conv[c][a];
+      const clicked = converted || r() < world.click[c][a];
+      const k = converted ? 0 : 1;
+      cs[c][a][k]++; overall[a][k]++;
+      if (prev !== null && strategy === "lead") paths.get(prev)[a][k]++;
+      if (converted) { total++; break; }
+      prev = a * 2 + (clicked ? 1 : 0);
+    }
+    while (cp < checkpoints.length && u + 1 >= checkpoints[cp]) { curve.push(total); cp++; }
+  }
+  return { total, curve };
+}
+onmessage = e => {
+  const { s, job } = e.data, points = 40;
+  const r = mulberry32(s.seed);
+  const checkpoints = Array.from({ length: points }, (_, i) => Math.max(1, Math.round(s.audience * (i + 1) / points)));
+  const out = {}; STRATS.forEach(k => out[k] = { runs: [], curve: new Array(points).fill(0) });
+  for (let run = 0; run < s.runs; run++) {
+    const world = makeWorld(s, r);
+    const people = Array.from({ length: s.audience }, () => Math.floor(r() * s.cohorts));
+    const runSeed = Math.floor(r() * 2 ** 31);
+    STRATS.forEach((k, i) => {
+      const res = runOnce(k, s, world, people, mulberry32(runSeed + i * 7919), checkpoints);
+      out[k].runs.push(res.total);
+      res.curve.forEach((v, j) => out[k].curve[j] += v);
+    });
+    postMessage({ job, done: run + 1, total: s.runs, out, checkpoints, final: run + 1 === s.runs });
+  }
+};
+</script>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const META = {
+    rotate:  { label: "Rotate at random", sub: "no learning", kind: "base" },
+    crossed: { label: "Crossed rotation, then exploit", sub: "test evenly, then use winners", kind: "cohort" },
+    bandit:  { label: "Cohort bandit", sub: "keeps shifting to winners", kind: "cohort" },
+    blind:   { label: "Learn overall best", sub: "blind", kind: "blind" },
+    lead:    { label: "Follow the lead", sub: "blind, prisoners-style", kind: "blind" },
+    oracle:  { label: "Perfect knowledge", sub: "upper limit", kind: "base" },
+  };
+  const COLOR = { rotate: "var(--base)", crossed: "var(--cohort)", bandit: "color-mix(in srgb, var(--cohort) 60%, var(--panel))",
+                  blind: "var(--blind)", lead: "color-mix(in srgb, var(--blind) 60%, var(--panel))", oracle: "var(--ink)" };
+  const DASH = { oracle: "4 3", rotate: "2 3" };
+  const DEFAULTS = { audience: 5000, cohorts: 10, ads: 20, perPerson: 5, base: 1, best: 8, winners: 2, overlap: 0, testShare: 20, runs: 10 };
+  const PRESETS = {
+    distinct: { ...DEFAULTS },
+    shared: { ...DEFAULTS, overlap: 80 },
+    big: { ...DEFAULTS, audience: 50000, runs: 3 },
+  };
+  const ids = Object.keys(DEFAULTS);
+  const pct = v => (v * 100).toFixed(v < 0.1 ? 2 : 1) + "%";
+
+  function read() {
+    const v = Object.fromEntries(ids.map(id => [id, +$(id).value]));
+    $("perPerson").max = Math.min(10, v.ads); $("winners").max = Math.min(10, v.ads);
+    v.perPerson = Math.min(v.perPerson, v.ads); v.winners = Math.min(v.winners, v.ads);
+    if (v.best < v.base) v.best = v.base;
+    return v;
+  }
+  function labels(v) {
+    $("audience-out").textContent = v.audience.toLocaleString();
+    $("cohorts-out").textContent = v.cohorts;
+    $("ads-out").textContent = v.ads;
+    $("perPerson-out").textContent = v.perPerson;
+    $("base-out").textContent = v.base.toFixed(1) + "%";
+    $("best-out").textContent = v.best.toFixed(1) + "%";
+    $("winners-out").textContent = v.winners;
+    $("overlap-out").textContent = v.overlap + "%";
+    $("testShare-out").textContent = `${v.testShare}% · ${Math.round(v.audience * v.testShare / 100).toLocaleString()} people`;
+    $("runs-out").textContent = v.runs;
+  }
+
+  // ---- worker ----
+  const blob = new Blob([$("engine-src").textContent], { type: "text/javascript" });
+  const workerUrl = URL.createObjectURL(blob);
+  let worker = null, job = 0, current = null;
+  function run() {
+    const v = read(); labels(v); square(v);
+    if (worker) worker.terminate();
+    worker = new Worker(workerUrl);
+    job++;
+    current = v;
+    const s = { audience: v.audience, cohorts: v.cohorts, ads: v.ads, perPerson: v.perPerson, base: v.base / 100, best: v.best / 100,
+                winners: v.winners, overlap: v.overlap / 100, testShare: v.testShare / 100, runs: v.runs, seed: 20260927 };
+    $("status").textContent = "running…"; $("run").disabled = true;
+    worker.onmessage = e => {
+      if (e.data.job !== job) return;
+      render(e.data, current);
+      $("status").textContent = e.data.final ? `${e.data.total} campaign${e.data.total > 1 ? "s" : ""} averaged` : `${e.data.done} of ${e.data.total} campaigns…`;
+      if (e.data.final) $("run").disabled = false;
+    };
+    worker.postMessage({ s, job });
+  }
+
+  function render(d, v) {
+    const n = d.done, mean = k => d.out[k].runs.reduce((a, b) => a + b, 0) / n;
+    const m = Object.fromEntries(Object.keys(META).map(k => [k, mean(k)]));
+    const top = Math.max(...Object.values(m)) || 1, rot = m.rotate || 1, ora = m.oracle || 1;
+    const order = Object.keys(META).sort((a, b) => m[b] - m[a]);
+    $("rank").replaceChildren(...order.map(k => {
+      const row = document.createElement("div"); row.className = "row";
+      const lift = m[k] / rot - 1;
+      row.innerHTML = `<div class="name"><span>${META[k].label}<span class="tag ${META[k].kind}">${META[k].kind === "base" ? "baseline" : META[k].kind}</span></span><small>${META[k].sub}</small></div>
+        <div class="bar"><i style="width:${(100 * m[k] / top).toFixed(1)}%;background:${COLOR[k]}"></i></div>
+        <div class="num">${Math.round(m[k]).toLocaleString()} <small>${pct(m[k] / v.audience)} · ${k === "rotate" ? "baseline" : (lift >= 0 ? "+" : "") + Math.round(lift * 100) + "%"} · ${Math.round(100 * m[k] / ora)}% of max</small></div>`;
+      return row;
+    }));
+    answer(m, v);
+    curve(d, v, n);
+  }
+
+  function answer(m, v) {
+    const rot = m.rotate || 1, blindBest = Math.max(m.blind, m.lead), cohortBest = Math.max(m.crossed, m.bandit);
+    const bl = blindBest / rot - 1, co = cohortBest / rot - 1;
+    const leadVsBlind = m.lead >= m.blind ? "Following the lead edges out learning the overall best here." : "Following the lead does worse than simply learning the overall best: one missed ad says too little about what the person wants next.";
+    let body;
+    if (co - bl > 0.15) body = `Only partly. With no information about the person, the best blind strategy gets <b>${bl >= 0 ? "+" : ""}${Math.round(bl * 100)}%</b> more conversions than random. That comes from finding the ads most people like. Knowing even a rough cohort gets <b>+${Math.round(co * 100)}%</b>. ${leadVsBlind}`;
+    else body = `Here, mostly yes. The cohorts share enough taste that the best blind strategy gets <b>+${Math.round(bl * 100)}%</b>, ${bl >= co ? "as much as" : "close to"} the <b>+${Math.round(co * 100)}%</b> from knowing the cohort. ${bl >= co ? "Pooling everyone's results learns faster than splitting them by cohort." : ""} ${leadVsBlind}`;
+    $("answer").innerHTML = `<strong>Does this solve blind advertising?</strong><p>${body}</p><p class="note">The cohort doesn't have to be personal. Context such as the site or placement, the content being read, time of day, device type or coarse region can form cohorts without any PII, so these gains are available without identifying anyone.</p>`;
+  }
+
+  // ---- charts ----
+  const NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function curve(d, v, n) {
+    const W = 760, H = 280, pad = { l: 48, r: 16, t: 14, b: 34 };
+    const cps = d.checkpoints, rates = {};
+    let maxR = 0;
+    for (const k in META) { rates[k] = d.out[k].curve.map((c, i) => c / n / cps[i]); maxR = Math.max(maxR, ...rates[k]); }
+    const yMax = Math.ceil(maxR * 100 / 2) * 2 / 100 || 0.02;
+    const x = i => pad.l + (W - pad.l - pad.r) * cps[i] / v.audience;
+    const y = r => H - pad.b - (H - pad.t - pad.b) * r / yMax;
+    const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", role: "img", "aria-label": "Cumulative conversion rate by strategy" });
+    for (let i = 0; i <= 4; i++) {
+      const r = yMax * i / 4;
+      el("line", { x1: pad.l, x2: W - pad.r, y1: y(r), y2: y(r), stroke: "var(--grid)" }, svg);
+      el("text", { x: pad.l - 6, y: y(r) + 4, "text-anchor": "end" }, svg).textContent = (r * 100).toFixed(yMax < 0.04 ? 1 : 0) + "%";
+    }
+    [0.25, 0.5, 0.75, 1].forEach(f => el("text", { x: pad.l + (W - pad.l - pad.r) * f, y: H - pad.b + 16, "text-anchor": "middle" }, svg).textContent = Math.round(v.audience * f).toLocaleString());
+    el("text", { x: W - pad.r, y: H - 2, "text-anchor": "end" }, svg).textContent = "people reached →";
+    const tx = pad.l + (W - pad.l - pad.r) * v.testShare / 100;
+    el("rect", { x: pad.l, y: pad.t, width: tx - pad.l, height: H - pad.t - pad.b, fill: "var(--cohort-soft)", opacity: 0.45 }, svg);
+    el("text", { x: pad.l + 6, y: pad.t + 13 }, svg).textContent = "test phase";
+    Object.keys(META).forEach(k => {
+      const dpath = rates[k].map((r, i) => (i ? "L" : "M") + x(i).toFixed(1) + "," + y(r).toFixed(1)).join("");
+      const attrs = { d: dpath, fill: "none", stroke: COLOR[k], "stroke-width": k === "crossed" || k === "blind" ? 2.5 : 1.75 };
+      if (DASH[k]) attrs["stroke-dasharray"] = DASH[k];
+      el("path", attrs, svg);
+      const last = rates[k].length - 1;
+      el("circle", { cx: x(last), cy: y(rates[k][last]), r: 3, fill: COLOR[k] }, svg);
+    });
+    $("curve").replaceChildren(svg);
+    $("curve-legend").innerHTML = Object.keys(META).map(k =>
+      `<span><i class="sw" style="background:${COLOR[k]}"></i>${META[k].label}</span>`).join("");
+  }
+
+  function square(v) {
+    const A = v.ads, K = Math.min(v.perPerson, A), C = Math.min(v.cohorts, 12), stride = Math.max(1, Math.floor(A / v.cohorts));
+    const rounds = Math.ceil(A / K);
+    let html = "<table class='square'><thead><tr><th></th>";
+    for (let a = 0; a < A; a++) html += `<th>${a + 1}</th>`;
+    html += "</tr></thead><tbody>";
+    for (let c = 0; c < C; c++) {
+      const firstRound = new Array(A).fill(-1);
+      for (let p = 0; p < rounds * 2 && firstRound.includes(-1); p++) {
+        const start = (p * K + c * stride) % A;
+        for (let i = 0; i < K; i++) { const a = (start + i) % A; if (firstRound[a] < 0) firstRound[a] = p; }
+      }
+      html += `<tr><th>cohort ${c + 1}</th>`;
+      for (let a = 0; a < A; a++) {
+        const r = firstRound[a], mix = Math.round(85 - 65 * r / Math.max(1, rounds - 1));
+        html += `<td style="background:color-mix(in srgb, var(--cohort) ${mix}%, var(--panel))" title="Cohort ${c + 1} first tests ad ${a + 1} with person ${r + 1}">${r + 1}</td>`;
+      }
+      html += "</tr>";
+    }
+    html += "</tbody></table>";
+    $("square").innerHTML = html;
+    $("square-note").textContent = `${rounds} people per cohort cover all ${A} ads${v.cohorts > C ? ` · first ${C} cohorts shown` : ""}`;
+  }
+
+  // ---- wiring ----
+  let timer;
+  ids.forEach(id => $(id).addEventListener("input", () => { const v = read(); labels(v); square(v); clearTimeout(timer); timer = setTimeout(run, 350); }));
+  $("controls").addEventListener("submit", e => { e.preventDefault(); run(); });
+  function apply(p) { ids.forEach(id => { $(id).value = p[id]; }); run(); }
+  $("reset").addEventListener("click", () => apply(DEFAULTS));
+  document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => apply(PRESETS[b.dataset.preset])));
+  run();
+})();
+</script>
+</body>
+</html>
